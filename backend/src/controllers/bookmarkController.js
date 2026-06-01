@@ -1,10 +1,11 @@
+const present = require("../presentations/Response");
 const Bookmark = require("../models/Bookmark");
 
 // GET all bookmarks
 exports.getAllBookmarks = async (req, res) => {
   try {
     const bookmarks = await Bookmark.find();
-    res.json(bookmarks);
+    res.json(present.successResponse(bookmarks));
   } catch (error) {
     res
       .status(500)
@@ -15,11 +16,19 @@ exports.getAllBookmarks = async (req, res) => {
 // POST create a new bookmark
 exports.createBookmark = async (req, res) => {
   try {
-    const { title, url, category } = req.body;
+    const { title, url, category, isFavourite, visitCount } = req.body;
 
-    const bookmark = new Bookmark({ title, url, category });
+    const bookmark = new Bookmark({
+      title,
+      url,
+      category,
+      isFavourite,
+      visitCount,
+    });
     await bookmark.save();
-    res.status(201).json({ message: "Bookmark créé avec succès" });
+    res
+      .status(201)
+      .json(present.successResponse({ message: "Bookmark créé avec succès" }));
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -33,11 +42,11 @@ exports.createBookmark = async (req, res) => {
 exports.updateBookmark = async (req, res) => {
   try {
     const { id } = req.params; //on recupère l'id dans l'url
-    const { title, url, category } = req.body;
+    const { title, url, category, isFavourite, visitCount } = req.body;
 
     const bookmark = await Bookmark.findByIdAndUpdate(
       id,
-      { title, url, category },
+      { title, url, category, isFavourite, visitCount },
       { new: true }, // pour retourner le bookmark mis à jour
     );
 
@@ -45,7 +54,7 @@ exports.updateBookmark = async (req, res) => {
       return res.status(404).json({ message: "Bookmark non trouvé" });
     }
 
-    res.json({ message: "Bookmark mis à jour avec succès", bookmark });
+    res.json(present.successResponse(bookmark));
   } catch (error) {
     console.error(error);
     res
@@ -64,7 +73,9 @@ exports.deleteBookmark = async (req, res) => {
       return res.status(404).json({ message: "Bookmark non trouvé" });
     }
 
-    res.json({ message: "Bookmark supprimé avec succès" });
+    res.json(
+      present.successResponse({ message: "Bookmark supprimé avec succès" }),
+    );
   } catch (error) {
     console.error(error);
     res
